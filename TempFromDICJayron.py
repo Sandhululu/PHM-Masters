@@ -27,13 +27,13 @@ def read_strain_data(strain_type='exx'):
     dirDIC = f'/Users/jayron/Downloads/Paper_Data_Set/DIC data/withoutCoil/{strain_type}'
     csv_files = glob.glob(os.path.join(dirDIC, '*.csv'))
     arrays = [pd.read_csv(f, header=None).values for f in csv_files]
-    
+
     root.destroy()
-    
+
     # Determine max dimensions for pad arrays
     max_rows = max(arr.shape[0] for arr in arrays)
     max_cols = max(arr.shape[1] for arr in arrays)
-    
+
     # Pad arrays to ensure consistent dimensions
     padded_arrays = [np.pad(arr, 
                            ((0, max_rows - arr.shape[0]), (0, max_cols - arr.shape[1])), 
@@ -88,7 +88,7 @@ def plot_initial_strain_analysis(ThermalStrain, DICExx, DICEyy, time_points, hig
             row, col = high_strain_points[0][idx], high_strain_points[1][idx]
             ax2.plot(time_points, ThermalStrain[:,row,col], 
                     label=f'Point ({row},{col}), Max={max_strain[row,col]:.2e}')
-
+    
     ax2.set_xlabel('Time (seconds)')
     ax2.set_ylabel('Strain (ε)')  # Added strain symbol
     ax2.set_title('Strain vs Time at High Strain Points')
@@ -116,8 +116,8 @@ def print_statistical_summary(ThermalStrain, high_strain_points):
 # Plot initial strain analysis
 top_5_indices = plot_initial_strain_analysis(ThermalStrain, DICExx, DICEyy, time_points, 
 high_strain_points, max_strain)
-
-# Print statistical summary
+    
+    # Print statistical summary
 print_statistical_summary(ThermalStrain, high_strain_points)
 
 # Material properties of Tungsten

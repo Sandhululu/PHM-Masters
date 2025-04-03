@@ -247,37 +247,6 @@ def plot_rul_estimation(rul_max_strain, cycles_max_strain_plot,
     fig_rul, (ax_rul1, ax_rul2) = plt.subplots(1, 2, figsize=(22, 10))
     fig_rul.subplots_adjust(wspace=0.6, right=0.85)  # Increased horizontal spacing
     
-    # Predefined cycles to failure values
-    principal_avg_cycles = 712523.5  # Average cycles to failure for principal strain
-    principal_min_cycles = 108.7     # Minimum cycles to failure for principal strain
-    shear_avg_cycles = 666748.0      # Average cycles to failure for shear strain
-    shear_min_cycles = 2292.8        # Minimum cycles to failure for shear strain
-    
-    # Convert cycles to years (seconds to years)
-    seconds_per_year = 365.25 * 24 * 60 * 60  # seconds in a year (accounting for leap years)
-    
-    # Convert principal strain cycles to years
-    principal_avg_years = (principal_avg_cycles * time_per_cycle) / seconds_per_year
-    principal_min_years = (principal_min_cycles * time_per_cycle) / seconds_per_year
-    
-    # Convert shear strain cycles to years
-    shear_avg_years = (shear_avg_cycles * time_per_cycle) / seconds_per_year
-    shear_min_years = (shear_min_cycles * time_per_cycle) / seconds_per_year
-    
-    # Helper function to format time in years
-    def format_years(years):
-        if years < 0.001:  # Less than ~8 hours
-            hours = years * 8766  # hours per year (365.25*24)
-            return f"{hours:.1f} hours"
-        elif years < 0.01:  # Less than ~3.7 days
-            days = years * 365.25
-            return f"{days:.1f} days"
-        elif years < 1:
-            months = years * 12
-            return f"{months:.1f} months"
-        else:
-            return f"{years:.2f} years"
-    
     # Plot RUL for maximum principal strain location
     if rul_max_strain is not None and cycles_max_strain_plot is not None:
         row, col = max_principal_loc
@@ -297,6 +266,22 @@ def plot_rul_estimation(rul_max_strain, cycles_max_strain_plot,
             if num > 1_000_000: return f"{num/1_000_000:.1f}M"
             elif num > 1_000: return f"{num/1_000:.1f}k"
             else: return f"{num:.1f}"
+        
+        # Format time duration
+        def format_time(cycles):
+            seconds = cycles * time_per_cycle
+            if seconds < 60:
+                return f"{seconds:.1f} seconds"
+            elif seconds < 3600:
+                return f"{seconds/60:.1f} minutes"
+            elif seconds < 86400:
+                return f"{seconds/3600:.1f} hours"
+            elif seconds < 2592000:  # 30 days
+                return f"{seconds/86400:.1f} days"
+            elif seconds < 31536000:  # 365 days
+                return f"{seconds/2592000:.1f} months"
+            else:
+                return f"{seconds/31536000:.1f} years"
             
         ax_rul1.text(0.97, 0.97, 
                     f"Initial RUL: {format_large_number(initial_rul)} cycles",
@@ -316,18 +301,13 @@ def plot_rul_estimation(rul_max_strain, cycles_max_strain_plot,
                     horizontalalignment='right', verticalalignment='top',
                     bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
         
-        # Add cycles to failure text box (in years)
-        ax_rul1.text(0.97, 0.73, 
-                    f"Avg lifetime: {format_years(principal_avg_years)}",
-                    transform=ax_rul1.transAxes, fontsize=12,
-                    horizontalalignment='right', verticalalignment='top',
-                    bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
-        
-        ax_rul1.text(0.97, 0.65, 
-                    f"Min lifetime: {format_years(principal_min_years)}",
-                    transform=ax_rul1.transAxes, fontsize=12,
-                    horizontalalignment='right', verticalalignment='top',
-                    bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
+        # Add time-based information
+        if time_per_cycle > 0:
+            ax_rul1.text(0.97, 0.73, 
+                        f"Elapsed time: {format_time(cycles_max_strain_plot[-1])}",
+                        transform=ax_rul1.transAxes, fontsize=12,
+                        horizontalalignment='right', verticalalignment='top',
+                        bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
         
         # Set plot formatting
         ax_rul1.set_xlabel("Cycles Experienced", fontsize=14)
@@ -369,18 +349,13 @@ def plot_rul_estimation(rul_max_strain, cycles_max_strain_plot,
                     horizontalalignment='right', verticalalignment='top',
                     bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
         
-        # Add cycles to failure text box (in years)
-        ax_rul2.text(0.97, 0.73, 
-                    f"Avg lifetime: {format_years(shear_avg_years)}",
-                    transform=ax_rul2.transAxes, fontsize=12,
-                    horizontalalignment='right', verticalalignment='top',
-                    bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
-        
-        ax_rul2.text(0.97, 0.65, 
-                    f"Min lifetime: {format_years(shear_min_years)}",
-                    transform=ax_rul2.transAxes, fontsize=12,
-                    horizontalalignment='right', verticalalignment='top',
-                    bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
+        # Add time-based information
+        if time_per_cycle > 0:
+            ax_rul2.text(0.97, 0.73, 
+                        f"Elapsed time: {format_time(cycles_max_shear_plot[-1])}",
+                        transform=ax_rul2.transAxes, fontsize=12,
+                        horizontalalignment='right', verticalalignment='top',
+                        bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
         
         # Set plot formatting
         ax_rul2.set_xlabel("Cycles Experienced", fontsize=14)
@@ -392,9 +367,18 @@ def plot_rul_estimation(rul_max_strain, cycles_max_strain_plot,
     # Configure y-axis for plots
     configure_rul_plot_axes(ax_rul1, ax_rul2, rul_max_strain, rul_max_shear)
     
-    # Add overall title
-    fig_rul.suptitle('Tungsten Component Remaining Useful Life Estimation', 
-                     fontsize=18, fontweight='bold', y=0.98)
+    # Add overall title with time information
+    if time_per_cycle > 0 and (cycles_max_strain_plot is not None or cycles_max_shear_plot is not None):
+        max_cycles = max(
+            np.max(cycles_max_strain_plot) if cycles_max_strain_plot is not None else 0,
+            np.max(cycles_max_shear_plot) if cycles_max_shear_plot is not None else 0
+        )
+        time_str = format_time(max_cycles)
+        fig_rul.suptitle(f'Tungsten Component RUL Estimation (Max time: {time_str})', 
+                         fontsize=18, fontweight='bold', y=0.98)
+    else:
+        fig_rul.suptitle('Tungsten Component Remaining Useful Life Estimation', 
+                         fontsize=18, fontweight='bold', y=0.98)
     
     plt.savefig(os.path.join(os.getcwd(), 'rul_estimation.svg'), bbox_inches='tight', dpi=300)
     plt.show() 
