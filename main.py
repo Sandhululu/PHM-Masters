@@ -16,9 +16,9 @@ from data_loader import load_all_data, print_statistical_summary
 from plotter import (plot_initial_strain_analysis, plot_stress_analysis, 
                     plot_strain_analysis, plot_fatigue_analysis_signals,
                     plot_rul_estimation)
-from fatigue_analysis import (calculate_stress, calculate_principal_strains,
-                             identify_cycles, analyze_fatigue,
+from fatigue_analysis import (identify_cycles, analyze_fatigue,
                              estimate_fatigue_life)
+from strain_calculator import (calculate_principal_strains, calculate_stresses)
 
 def main():
     """Main function to run the strain analysis and RUL estimation workflow"""
@@ -64,7 +64,7 @@ def main():
     E = 400e9  # Young's modulus (Pa)
     nu = 0.28  # Poisson's ratio
     
-    stress_xx, stress_yy, stress_von_mises = calculate_stress(ThermalStrain, E, nu)
+    stress_xx, stress_yy, stress_von_mises = calculate_stresses(DICExx, DICEyy, E, nu, ThermalStrain)
     
     # Calculate yield strength and safety factor
     yield_strength = 1000e6  # Approximate yield strength for tungsten (~1000 MPa)
