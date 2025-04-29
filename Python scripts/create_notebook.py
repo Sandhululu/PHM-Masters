@@ -1,0 +1,74 @@
+import json
+import os
+
+# Create a basic notebook structure
+notebook = {
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "# Remaining Useful Life (RUL) Estimation from Strain DIC Measurement\n",
+                "\n",
+                "This notebook demonstrates the workflow for estimating the remaining useful life (RUL) of a tungsten component using Digital Image Correlation (DIC) strain data.\n",
+                "\n",
+                "**Author:** Jayron Sandhu"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "## Setup and Imports\n",
+                "\n",
+                "First, let's import the required modules and libraries."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# Import necessary modules\n",
+                "import numpy as np\n",
+                "import matplotlib.pyplot as plt\n",
+                "import os\n",
+                "import rainflow\n",
+                "import warnings\n",
+                "\n",
+                "# Suppress specific warnings\n",
+                "warnings.filterwarnings(\"ignore\", category=RuntimeWarning)\n",
+                "\n",
+                "# Import modules from our project\n",
+                "from data_loader import load_all_data, print_statistical_summary\n",
+                "from plotter import (plot_initial_strain_analysis, plot_stress_analysis, \n",
+                "                    plot_strain_analysis, plot_fatigue_analysis_signals,\n",
+                "                    plot_rul_estimation)\n",
+                "from fatigue_analysis import (calculate_stress, calculate_principal_strains,\n",
+                "                             identify_cycles, analyze_fatigue,\n",
+                "                             estimate_fatigue_life)\n",
+                "\n",
+                "# Set matplotlib parameters for better visualization\n",
+                "plt.rcParams['figure.figsize'] = (16, 10)\n",
+                "plt.rcParams['figure.dpi'] = 100\n",
+                "plt.rcParams['font.size'] = 12"
+            ]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+# Write the notebook to a file
+with open('RUL_Estimation_Workflow.ipynb', 'w') as f:
+    json.dump(notebook, f)
+
+print("Jupyter notebook created successfully!") 

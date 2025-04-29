@@ -21,17 +21,12 @@ def read_strain_data(strain_type='exx'):
     Returns:
         tuple: (Average data array, Complete DIC data array)
     """
-    root = tkinter.Tk()
-    root.withdraw()
-    root.attributes('-alpha', 0.0)
-    root.attributes('-topmost', True)
-    root.update()
-    
-    dirDIC = f'/Users/jayron/Downloads/Paper_Data_Set/DIC data/withoutCoil/{strain_type}'
-    csv_files = glob.glob(os.path.join(dirDIC, '*.csv'))
+    dirDIC = f'DIC data/withoutCoil/{strain_type}'
+    csv_files = sorted(glob.glob(os.path.join(dirDIC, '*.csv')))
+    if not csv_files:
+        raise FileNotFoundError(f"No CSV files found in {dirDIC}")
+        
     arrays = [pd.read_csv(f, header=None).values for f in csv_files]
-    
-    root.destroy()
     
     # Determine max dimensions for pad arrays
     max_rows = max(arr.shape[0] for arr in arrays)
@@ -45,33 +40,44 @@ def read_strain_data(strain_type='exx'):
     
     DICData = np.stack(padded_arrays)
     Average = np.nanmean(DICData, axis=0)
+    
     return Average, DICData
 
 def load_all_data():
-    """Load and prepare all strain data
-    
-    Returns:
-        tuple: All the processed strain data arrays and time points
-    """
-    # Load strain data
+    """Load all strain data from the DIC data directory"""
+    # Load exx and eyy strain data
     AverageExx, DICExx = read_strain_data('exx')
     AverageEyy, DICEyy = read_strain_data('eyy')
+    
+    # Calculate thermal strain
     ThermalStrain = (DICExx + DICEyy) / 2
     
-    # Generate time points
-    time_points = np.arange(0, len(ThermalStrain) * 0.2, 0.2)
+    # Generate time points (0.2s intervals)
+    time_points = np.arange(0, DICExx.shape[0] * 0.2, 0.2)
     
-    # Calculate statistical values
-    mean_strain = np.nanmean(ThermalStrain, axis=0)
-    std_strain = np.nanstd(ThermalStrain, axis=0)
-    max_strain = np.nanmax(ThermalStrain, axis=0)
+    # Calculate principal strains
+    exx = DICExx
+    eyy = DICEyy
+    exy = np.zeros_like(exx)  # Assuming zero shear strain
     
-    # Find high strain points
-    high_strain_threshold = mean_strain + 0.25 * std_strain
-    high_strain_points = np.where(max_strain > high_strain_threshold)
+    # Calculate principal strains
+    avg = (exx + eyy) / 2
+    diff = (exx - eyy) / 2
+    radius = np.sqrt(diff**2 + exy**2)
     
-    return (AverageExx, DICExx, AverageEyy, DICEyy, ThermalStrain, 
-            time_points, mean_strain, std_strain, max_strain, high_strain_points)
+    major_principal_strain = avg + radius
+    minor_principal_strain = avg - radius
+    max_shear_strain = 2 * radius
+    
+    return {
+        'exx': exx,
+        'eyy': eyy,
+        'thermal_strain': ThermalStrain,
+        'time_points': time_points,
+        'major_principal_strain': major_principal_strain,
+        'minor_principal_strain': minor_principal_strain,
+        'max_shear_strain': max_shear_strain
+    }
 
 def print_statistical_summary(ThermalStrain, high_strain_points):
     """Print statistical summary of strain data
